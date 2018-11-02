@@ -30,6 +30,11 @@ namespace Categories
             public string GetName() { return Name; }
             public DateTime GetCreated() { return Created; }
 
+            public void SetName(string name)
+            {
+                Name = name;
+            }
+
             public override string ToString()
             {
                 return string.Format("{0}", Name);
@@ -50,11 +55,7 @@ namespace Categories
             catSet.Add(new Category(Count++, 4, "sub-sub-sub-cat", DateTime.Now));
 
             InitializeComponent();
-            
-            comboCat.Add(emptyItem);
-            FillComboBox("");
-            comboBox1.DataSource = comboCat;
-            comboBox1.SelectedItem = emptyItem;
+            UpdateComboBox();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -71,13 +72,24 @@ namespace Categories
             {
                 foreach (var row in query)
                 {
-                    richTextBox1.AppendText(subMark + "-" + row.GetName() + "\n");
+                    richTextBox1.AppendText(subMark + "-" + row + "\n");
                     RecursiveCategoryTree(subMark + "  ", row.GetId());
                 }
             }
         }
 
-        List<Category> comboCat = new List<Category>();
+        // Iterative
+        void IterativeCategoryTree()
+        {
+        }
+
+        public void UpdateComboBox()
+        {
+            comboBox1.Items.Clear();
+            comboBox1.Items.Add(emptyItem);
+            FillComboBox("");
+            comboBox1.SelectedItem = emptyItem;
+        }
 
         private void FillComboBox(string subMark, int parentId = -1)
         {
@@ -86,8 +98,9 @@ namespace Categories
             {
                 foreach (var row in query)
                 {
-                    Category cCat = new Category(row.GetId(), row.GetParentId(), subMark + "-" + row.GetName(), row.GetCreated());
-                    comboCat.Add(cCat);
+                    Category temp = new Category(row.GetId(), row.GetParentId(), row.GetName(), row.GetCreated());
+                    temp.SetName(subMark + "-" + row.GetName());
+                    comboBox1.Items.Add(temp);
                     FillComboBox(subMark + "  ", row.GetId());
                 }
             }
@@ -97,14 +110,27 @@ namespace Categories
         {
             string title = textBox1.Text;
             Category selectedCat = (Category)comboBox1.SelectedItem;
-            int parentId = selectedCat.GetId();
-            catSet.Add(new Category(Count++, parentId, title, DateTime.Now));
+            int parentId = -1;
+            try
+            {
+                parentId = selectedCat.GetId();
+            }
+            catch { }
+            if (!textBox1.Text.Equals(""))
+            {
+                label4.Visible = false;
+                catSet.Add(new Category(Count++, parentId, title, DateTime.Now));
+            }
+            else
+            {
+                label4.Visible = true;
+                return;
+            }
 
             richTextBox1.Clear();
             RecursiveCategoryTree("");
-            comboBox1.DataSource = comboCat;
+            UpdateComboBox();
             textBox1.Text = null;
-            comboBox1.SelectedItem = emptyItem;
         }
 
         private void button3_Click(object sender, EventArgs e)
